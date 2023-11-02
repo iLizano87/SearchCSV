@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Search in CSV</title>
+</head>
+
+<body>
+    <h1>Búsqueda</h1>
+    <div class="center">
+        <input type="text" id="searchInput1" placeholder="Buscar en número">
+        <br /><br />
+        <input type="text" id="searchInput2" placeholder="Buscar en nombre">
+        <br /><br />
+        <input type="text" id="searchInput3" placeholder="Buscar en 1er apellido">
+        <br /><br />
+        <input type="text" id="searchInput4" placeholder="Buscar en 2o apellido">
+        <br /><br />
+        <button onclick="searchCSV()">Buscar</button>
+    </div><br />
+    <div class="center">
+        <div id="results"></div>
+    </div>
+
+    <script>
+        function searchCSV() {
+            const searchInputs = [];
+            for (let i = 1; i <= 4; i++) {
+                const input = document.getElementById(`searchInput${i}`).value.trim().toLowerCase();
+                searchInputs.push(input);
+            }
+
+            // Validación para verificar si se ha ingresado algún dato en los campos de búsqueda
+            if (searchInputs.every(input => input === "")) {
+                alert("Debe introducir algún dato a buscar.");
+                return;
+            }
+
+            searchInputs[0] = searchInputs[0].replace(/[.,]/g, '');
+
+            const resultsContainer = document.getElementById('results');
+            resultsContainer.innerHTML = '';
+
+
+            // CAMBIAR URL AQUÍ
+            fetch('///')
+                .then(response => response.text())
+                .then(data => {
+                    const lines = data.split('\n');
+                    const results = [];
+
+                    for (let i = 0; i < lines.length; i++) {
+                        const values = lines[i].split(';');
+                        if (values.length === 4) {
+                            const entry = {
+                                numero: values[0].replace(/[.,]/g, ''),
+                                nombre: values[1],
+                                apellido1: values[2],
+                                apellido2: values[3]
+                            };
+                            results.push(entry);
+                        }
+                    }
+
+                    const matchingResults = results.filter(entry => {
+                        for (let i = 0; i < 4; i++) {
+                            if (searchInputs[i] && !entry[Object.keys(entry)[i]].toLowerCase().includes(searchInputs[i])) {
+                                return false;
+                            }
+                        }
+                        return true;
+                    });
+                    if (matchingResults.length > 0) {
+                        const table = document.createElement('table');
+                        const headerRow = table.insertRow(0);
+                        const header1 = headerRow.insertCell(0);
+                        header1.innerHTML = 'Nº de colegiado';
+                        header1.classList.add('header-cell');
+
+                        const header2 = headerRow.insertCell(1);
+                        header2.innerHTML = 'Nombre de colegiado';
+                        header2.classList.add('header-cell');
+
+                        const header3 = headerRow.insertCell(2);
+                        header3.innerHTML = '1er apellido de colegiado';
+                        header3.classList.add('header-cell');
+
+                        const header4 = headerRow.insertCell(3);
+                        header4.innerHTML = '2o apellido de colegiado';
+                        header4.classList.add('header-cell');
+
+                        matchingResults.forEach(result => {
+                            const row = table.insertRow();
+                            const cell1 = row.insertCell(0);
+                            cell1.innerHTML = result.numero;
+                            const cell2 = row.insertCell(1);
+                            cell2.innerHTML = result.nombre;
+                            const cell3 = row.insertCell(2);
+                            cell3.innerHTML = result.apellido1;
+                            const cell4 = row.insertCell(3);
+                            cell4.innerHTML = result.apellido2;
+                        });
+
+                        resultsContainer.appendChild(table);
+                    } else {
+                        resultsContainer.textContent = 'No se encontraron coincidencias.';
+                    }
+                })
+                .catch(error => {
+                    console.error('Error al cargar el archivo CSV:', error);
+                });
+        }
+    </script>
+    </div>
+</body>
+
+</html>
